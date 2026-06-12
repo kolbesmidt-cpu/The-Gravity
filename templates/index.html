@@ -13,8 +13,29 @@
 
   <!-- Styles -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+
+  <!-- Apply saved theme before paint to avoid a flash -->
+  <script>
+    (function () {
+      var saved = localStorage.getItem('gravity-theme');
+      var theme = saved || (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+      document.documentElement.setAttribute('data-theme', theme);
+    })();
+  </script>
 </head>
 <body>
+  <!-- Opening animation -->
+  <div class="preloader" id="preloader">
+    <div class="preloader-inner">
+      <div class="preloader-orbit"><span class="preloader-core"></span></div>
+      <div class="preloader-name" id="preloaderName">
+        <span>T</span><span>H</span><span>E</span><span>&nbsp;</span><span>G</span><span>R</span><span>A</span><span>V</span><span>I</span><span>T</span><span>Y</span>
+      </div>
+      <div class="preloader-bar"><span id="preloaderFill"></span></div>
+      <div class="preloader-count"><span id="preloaderCount">0</span>%</div>
+    </div>
+  </div>
+
   <!-- 3D animated universe lives here -->
   <canvas id="universe"></canvas>
   <div class="overlay-gradient"></div>
@@ -31,9 +52,20 @@
       <a href="#stats">Impact</a>
       <a href="#contact" class="nav-cta">Contact</a>
     </nav>
-    <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
-      <span></span><span></span><span></span>
-    </button>
+    <div class="nav-actions">
+      <button class="theme-toggle" id="themeToggle" aria-label="Toggle light and dark mode" title="Toggle theme">
+        <svg class="icon-sun" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <circle cx="12" cy="12" r="4"></circle>
+          <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path>
+        </svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"></path>
+        </svg>
+      </button>
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
   </header>
 
   <main>

@@ -9,14 +9,68 @@
 
   document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('year').textContent = new Date().getFullYear();
+    initTheme();
     initNav();
-    initHero();
     initRotator();
     initReveals();
     initCounters();
     initCardGlow();
     initForm();
+    initPreloader(initHero); // play hero entrance once the intro finishes
   });
+
+  /* ---------- Light / dark theme toggle ---------- */
+  function initTheme() {
+    const btn = document.getElementById('themeToggle');
+    if (!btn) return;
+    btn.addEventListener('click', () => {
+      const root = document.documentElement;
+      const next = root.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+      root.setAttribute('data-theme', next);
+      localStorage.setItem('gravity-theme', next);
+      // let the 3D background adapt its colors
+      window.dispatchEvent(new CustomEvent('themechange', { detail: { theme: next } }));
+    });
+  }
+
+  /* ---------- Opening animation ---------- */
+  function initPreloader(onDone) {
+    const pre = document.getElementById('preloader');
+    if (!pre) { onDone && onDone(); return; }
+
+    const fill = document.getElementById('preloaderFill');
+    const count = document.getElementById('preloaderCount');
+    const letters = document.querySelectorAll('.preloader-name span');
+
+    const finish = () => {
+      pre.classList.add('done');
+      onDone && onDone();
+      // free the node after it fades out
+      setTimeout(() => pre.remove(), 900);
+    };
+
+    if (reduced) { finish(); return; }
+
+    // Stagger the brand letters in.
+    letters.forEach((l, idx) => { l.style.animationDelay = `${0.15 + idx * 0.05}s`; });
+
+    // Animate the loading counter from 0 -> 100.
+    const duration = 1700;
+    const start = performance.now();
+    const tick = (now) => {
+      const p = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - p, 3);
+      const pct = Math.round(eased * 100);
+      if (count) count.textContent = pct;
+      if (fill) fill.style.width = pct + '%';
+      if (p < 1) {
+        requestAnimationFrame(tick);
+      } else {
+        setTimeout(finish, 350);
+      }
+    };
+    requestAnimationFrame(tick);
+  }
 
   /* ---------- Navbar: scrolled state + mobile toggle ---------- */
   function initNav() {

@@ -2,6 +2,10 @@
    THE GRAVITY — 3D animated universe background
    Built with Three.js (r128). A drifting starfield + a glowing
    spiral galaxy of particles that reacts to the mouse & scroll.
+
+   Theme aware: in dark mode the stars glow (additive blending);
+   in light mode they switch to dark, solid stars so the animation
+   stays clearly visible on the pale background.
    ============================================================ */
 (function () {
   const canvas = document.getElementById('universe');
@@ -69,7 +73,7 @@
       transparent: true, depthWrite: false,
       blending: THREE.AdditiveBlending, opacity: 0.9,
     });
-    return new THREE.Points(geo, mat);
+    return { points: new THREE.Points(geo, mat), mat, baseOpacity: 0.9 };
   }
 
   // ---------- 2. Spiral galaxy ----------
@@ -101,14 +105,31 @@
     });
     const points = new THREE.Points(geo, mat);
     points.rotation.x = -0.55;
-    return points;
+    return { points, mat, baseOpacity: 0.95 };
   }
 
   const isSmall = window.innerWidth < 700;
   const starfield = buildStarfield(isSmall ? 1400 : 2800);
   const galaxy = buildGalaxy(isSmall ? 6000 : 14000);
-  scene.add(starfield);
-  scene.add(galaxy);
+  scene.add(starfield.points);
+  scene.add(galaxy.points);
+
+  // ---------- Theme handling ----------
+  // Light mode: dark, solid (normal-blended) stars so they read on a pale sky.
+  // Dark mode: bright, additive glowing stars on the deep-space backdrop.
+  const layers = [starfield, galaxy];
+  function applyTheme(theme) {
+    const light = theme === 'light';
+    scene.fog.color.set(light ? 0xe7e9f7 : 0x05010f);
+    layers.forEach((l) => {
+      l.mat.blending = light ? THREE.NormalBlending : THREE.AdditiveBlending;
+      l.mat.color.set(light ? 0x2a2358 : 0xffffff); // multiplies the star colours
+      l.mat.opacity = light ? 1.0 : l.baseOpacity;
+      l.mat.needsUpdate = true;
+    });
+  }
+  applyTheme(document.documentElement.getAttribute('data-theme') || 'dark');
+  window.addEventListener('themechange', (e) => applyTheme(e.detail.theme));
 
   // ---------- Interaction ----------
   const mouse = { x: 0, y: 0 };
@@ -133,9 +154,9 @@
     const t = clock.getElapsedTime();
 
     if (!prefersReduced) {
-      galaxy.rotation.y = t * 0.06;
-      starfield.rotation.y = t * 0.012;
-      starfield.rotation.x = t * 0.006;
+      galaxy.points.rotation.y = t * 0.06;
+      starfield.points.rotation.y = t * 0.012;
+      starfield.points.rotation.x = t * 0.006;
     }
 
     // Camera eases toward the cursor for a parallax feel.

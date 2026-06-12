@@ -51,8 +51,49 @@ Then open **http://127.0.0.1:5000** in your browser.
 | Method | Route           | Description                                  |
 |--------|-----------------|----------------------------------------------|
 | GET    | `/`             | Serves the website                           |
-| POST   | `/api/contact`  | Validates and stores a contact message       |
+| POST   | `/api/contact`  | Validates, stores, and emails a message      |
 | GET    | `/api/messages` | Returns all submitted messages (newest first)|
 
-Contact submissions are stored in `gravity.db`. View them at
-`http://127.0.0.1:5000/api/messages`.
+Contact submissions are always stored in `gravity.db` (view them at
+`http://127.0.0.1:5000/api/messages`) **and** emailed to
+`sahidbapi2001@gmail.com` once email is configured.
+
+## 📧 Get contact messages in your Gmail
+
+Messages are emailed using Gmail's SMTP server. Gmail no longer allows your
+normal password for this — you need a free **App Password**:
+
+1. Turn on **2-Step Verification**: <https://myaccount.google.com/security>
+2. Create an App Password: <https://myaccount.google.com/apppasswords>
+   (choose "Mail" → any device name → it gives you a 16-character code).
+3. Before starting the server, set two environment variables:
+
+   **Windows (PowerShell):**
+   ```powershell
+   $env:SMTP_USER = "sahidbapi2001@gmail.com"
+   $env:SMTP_PASS = "your16charapppassword"   # no spaces
+   python app.py
+   ```
+
+   **Windows (Command Prompt):**
+   ```cmd
+   set SMTP_USER=sahidbapi2001@gmail.com
+   set SMTP_PASS=your16charapppassword
+   python app.py
+   ```
+
+   **macOS / Linux:**
+   ```bash
+   export SMTP_USER="sahidbapi2001@gmail.com"
+   export SMTP_PASS="your16charapppassword"
+   python app.py
+   ```
+
+That's it — every contact submission now lands in your Gmail inbox, with the
+sender's address set as **Reply-To** so you can reply to them directly.
+
+> If `SMTP_USER` / `SMTP_PASS` aren't set, the site still works perfectly —
+> messages are just saved to `gravity.db` and the email step is skipped.
+
+Optional overrides: `CONTACT_RECIPIENT` (where mail is sent),
+`SMTP_FROM`, `SMTP_HOST`, `SMTP_PORT`.
